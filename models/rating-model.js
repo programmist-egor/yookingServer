@@ -16,6 +16,10 @@ const Rating = sequelizeExtranet.define('Rating', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
     city: {
         type: DataTypes.STRING,
         allowNull: false,

@@ -11,15 +11,27 @@ class BookingController {
             next(error);
         }
     }
-    async getBookingToId(req, res, next) {
+    async getBookingArchiveToEmail(req, res, next) {
         try {
-            console.log("statusId");
-            const id = req.params.id
+            const email = req.params.email
+            c
+            if (!email) {
+                return new ApiError.BadRequest("Некорректные данные")
+            }
+            const data = await BookingService.getBookingArchiveToEmail(email)
+            res.json(data)
+        } catch (error) {
+            next(error);
+        }
+    }
+    async getBookingActiveToId(req, res, next) {
+        try {
 
+            const id = req.params.id
             if (!id) {
                 return new ApiError.BadRequest("Некорректные данные")
             }
-            const data = await BookingService.getBookingToId(id)
+            const data = await BookingService.getBookingActiveToId(id)
             res.json(data)
         } catch (error) {
             next(error);

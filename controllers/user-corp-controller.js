@@ -39,7 +39,7 @@ class UserCorpController {
 
     async logout(req, res, next) {
         try {
-            const {refreshToken} = req.cookies;
+            const {refreshToken} = req.body;
             const token = await UserCorpService.logout(refreshToken);
             res.clearCookie("refreshToken")
             res.json(token)
@@ -90,12 +90,12 @@ class UserCorpController {
     async updateUserCorp(req, res, next) {
         try {
             const userId = req.params.userId
-            const {dataUserCorp} = req.body
-            console.log("dataUserCorp",dataUserCorp);
-            if (!userId && !dataUserCorp) {
+            const {dataUser} = req.body
+            console.log("dataUserCorp",dataUser);
+            if (!userId && !dataUser) {
                 return new ApiError.BadRequest("Некорректные данные")
             }
-            const data = await UserCorpService.updateUserCorp(userId, dataUserCorp)
+            const data = await UserCorpService.updateUserCorp(userId, dataUser)
             res.json(data)
         } catch (error) {
             next(error);

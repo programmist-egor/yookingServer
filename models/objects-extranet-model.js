@@ -65,7 +65,7 @@ const ObjectsExtranet = sequelizeExtranet.define('Objects-Extranet', {
         allowNull: false,
     },
     rating: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.FLOAT,
         allowNull: false,
     },
     description: {

@@ -1,14 +1,9 @@
-import {v4 as uuidv4} from 'uuid';
-import MailService from "./mail-service.js";
 import TokenCorpService from "./token-corp-service.js";
 import ApiError from "../exceptions/api-error.js";
 import UserDtos from "../dtos/user-dtos.js";
 import dotenv from "dotenv";
 import UsersCorp from "../models/users-corp-model.js";
 import bcrypt from "bcrypt";
-import UsersYooking from "../models/users-yooking-model.js";
-
-
 
 dotenv.config()
 
@@ -19,23 +14,22 @@ class UserCorpService {
             const candidate = await UsersCorp.findOne({ where: { email } });
 
             if (candidate) {
-                throw new Error(`Пользователь с почтовым адресом ${email} уже существует`);
+                return {success: false, message: `Пользователь с почтовым адресом ${email} уже существует`};
             }
 
             const phoneUser = await UsersCorp.findOne({ where: { phone } });
 
             if (phoneUser) {
-                throw new Error(`Пользователь с таким номером ${phone} уже существует`);
+                return {success: false, message: `Пользователь с таким номером ${phone} уже существует`};
             }
 
             const hashPassword = await bcrypt.hash(password, 10);
-            const activationLink = uuidv4();
+
             const dataUser = {
                 ...newUser,
                 email,
                 password: hashPassword,
                 phone,
-                activationLink
             };
 
             const user = await UsersCorp.create(dataUser);
@@ -56,7 +50,7 @@ class UserCorpService {
                 throw new Error(`Ошибка сохранения токена: ${tokenError.message}`);
             }
 
-            return { ...tokens, user: userDto };
+            return {success: true, message: "Регистрация пройдена", data: {...tokens, user: userDto}}
         } catch (error) {
             console.error("Ошибка регистрации пользователя:", error);
             throw new Error("Ошибка регистрации пользователя");
@@ -67,13 +61,13 @@ class UserCorpService {
         const user = await UsersCorp.findOne({ where: { email } });
 
         if (!user) {
-            throw new ApiError.BadRequest("Пользователь с таким email не найден");
+            return {success: false, message: "Пользователь с таким email не найден"};
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
-            throw new ApiError.BadRequest("Неверный пароль");
+            return {success: false, message: "Неверный пароль"};
         }
 
         const userSaveToDtos = {
@@ -88,7 +82,7 @@ class UserCorpService {
 
         await TokenCorpService.saveToken(userDto.id, tokens.refreshToken);
 
-        return { ...tokens, user: userDto };
+        return {success: true, message: "Авторизация пройдена", data: {...tokens, user: userDto} };
     }
 
     async activate(activationLink) {
@@ -123,16 +117,16 @@ class UserCorpService {
         const userDto = new UserDtos(userSaveToDtos)
         const tokens = TokenCorpService.generateTokens({...userDto})
         await TokenCorpService.saveToken(userDto.id, tokens.refreshToken)
-        return {...tokens, user: userDto}
+        return {success: true, message: "Перезапись токена успешна", data: {...tokens, user: userDto}};
 
     }
     async getUserCorp (userId) {
         return await UsersCorp.findOne({ where: { id: userId } });
     }
-    async updateUserCorp(userId, dataUserCorp) {
+    async updateUserCorp(userId, dataUser) {
         console.log("userId",userId);
-        console.log("dataUserCorp",dataUserCorp);
-        return await UsersCorp.update(dataUserCorp, { where: { id: userId } });
+        console.log("dataUserCorp",dataUser);
+        return await UsersCorp.update(dataUser, { where: { id: userId } });
 
     }
 }

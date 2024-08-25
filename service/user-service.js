@@ -1,5 +1,3 @@
-import {v4 as uuidv4} from 'uuid';
-import MailService from "./mail-service.js";
 import TokenService from "./token-service.js";
 import ApiError from "../exceptions/api-error.js";
 import UserDtos from "../dtos/user-dtos.js";
@@ -7,33 +5,31 @@ import dotenv from "dotenv";
 import UsersYooking from "../models/users-yooking-model.js";
 import bcrypt from "bcrypt";
 
-
 dotenv.config()
 
 class UserService {
     async registration(newUser) {
         try {
-            const { email, phone, password } = newUser;
-            const candidate = await UsersYooking.findOne({ where: { email } });
+            const {email, phone, password} = newUser;
+            const candidate = await UsersYooking.findOne({where: {email}});
 
             if (candidate) {
-                throw new Error(`Пользователь с почтовым адресом ${email} уже существует`);
+                return {success: false, message: `Пользователь с почтовым адресом ${email} уже существует`};
             }
 
-            const phoneUser = await UsersYooking.findOne({ where: { phone } });
+            const phoneUser = await UsersYooking.findOne({where: {phone}});
 
             if (phoneUser) {
-                throw new Error(`Пользователь с таким номером ${phone} уже существует`);
+                return {success: false, message: `Пользователь с таким номером ${phone} уже существует`};
             }
 
             const hashPassword = await bcrypt.hash(password, 10);
-            const activationLink = uuidv4();
+
             const dataUser = {
                 ...newUser,
                 email,
                 password: hashPassword,
                 phone,
-                activationLink
             };
 
             const user = await UsersYooking.create(dataUser);
@@ -44,9 +40,8 @@ class UserService {
                 isActivated: user.isActivated,
             };
 
-            // Отправка письма активации
             const userDto = new UserDtos(userSaveToDtos);
-            const tokens = TokenService.generateTokens({ ...userDto });
+            const tokens = TokenService.generateTokens({...userDto});
 
             try {
                 await TokenService.saveToken(userDto.id, tokens.refreshToken);
@@ -54,7 +49,7 @@ class UserService {
                 throw new Error(`Ошибка сохранения токена: ${tokenError.message}`);
             }
 
-            return { ...tokens, user: userDto };
+            return {success: true, message: "Регистрация пройдена", data: {...tokens, user: userDto}}
         } catch (error) {
             console.error("Ошибка регистрации пользователя:", error);
             throw new Error("Ошибка регистрации пользователя");
@@ -62,16 +57,16 @@ class UserService {
     }
 
     async login(email, password) {
-        const user = await UsersYooking.findOne({ where: { email } });
+        const user = await UsersYooking.findOne({where: {email}});
 
         if (!user) {
-            throw new ApiError.BadRequest("Пользователь с таким email не найден");
+            return {success: false, message: "Пользователь с таким email не найден"};
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
-            throw new ApiError.BadRequest("Неверный пароль");
+            return {success: false, message: "Неверный пароль"};
         }
 
         const userSaveToDtos = {
@@ -82,12 +77,14 @@ class UserService {
         };
 
         const userDto = new UserDtos(userSaveToDtos);
-        const tokens = TokenService.generateTokens({ ...userDto });
+        const tokens = TokenService.generateTokens({...userDto});
 
         await TokenService.saveToken(userDto.id, tokens.refreshToken);
 
-        return { ...tokens, user: userDto };
+        return {success: true, message: "Авторизация пройдена", data: {...tokens, user: userDto} };
     }
+
+
 
     async activate(activationLink) {
         const user = await UsersYooking.findOne({where: {activationLink}});
@@ -121,9 +118,10 @@ class UserService {
         const userDto = new UserDtos(userSaveToDtos)
         const tokens = TokenService.generateTokens({...userDto})
         await TokenService.saveToken(userDto.id, tokens.refreshToken)
-        return {...tokens, user: userDto}
+        return {success: true, message: "Перезапись токена успешна", data: {...tokens, user: userDto}};
 
     }
+
 }
 
 export default new UserService()

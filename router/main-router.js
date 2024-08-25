@@ -12,6 +12,9 @@ import RatingController from "../controllers/rating-controller.js";
 import SettingPageController from "../controllers/setting-page-controller.js";
 import UserCorpController from "../controllers/user-corp-controller.js";
 import {authCorpMiddleware} from "../middlewares/auth-corp-middleware.js";
+import ConfirmCodeEmailAndPhoneController from "../controllers/confirm-code-email-and-phone-controller.js";
+import RestorePasswordController from "../controllers/restore-password-controller.js";
+import ChatSupportController from "../controllers/chat-support-controller.js";
 const Router = RouterExp.Router
 const mainRoute = new Router()
 
@@ -21,6 +24,19 @@ mainRoute.get("/user/get_by_id/:userId", authMiddleware, UserYookingController.g
 mainRoute.put("/user/yooking/:userId", authMiddleware, UserYookingController.updateUserYooking)
 mainRoute.put("/user/yooking/code/:userId", authMiddleware, UserYookingController.generateCode)
 mainRoute.delete("/user/yooking/:userId", authMiddleware, UserYookingController.deleteUserYooking)
+//CONFIRM EMAIL AND PHONE
+mainRoute.put("/code/email/:userId",  ConfirmCodeEmailAndPhoneController.sendCodeForEmail)
+mainRoute.put("/code/email/corp/:userId",  ConfirmCodeEmailAndPhoneController.sendCodeForEmailCorp)
+mainRoute.post("/code/email/confirm/:userId",  ConfirmCodeEmailAndPhoneController.confirmCodeForEmail)
+mainRoute.post("/code/email/confirm/corp/:userId",  ConfirmCodeEmailAndPhoneController.confirmCodeForEmailCorp)
+mainRoute.post("/code/email/restore",  ConfirmCodeEmailAndPhoneController.confirmRestorePasswordCodeForEmail)
+mainRoute.post("/code/email/restore/corp",  ConfirmCodeEmailAndPhoneController.confirmRestorePasswordCodeForEmailCorp)
+mainRoute.post("/code/email/codeRestore",  ConfirmCodeEmailAndPhoneController.sendCodeRestorePassword)
+mainRoute.post("/code/email/codeRestore/corp",  ConfirmCodeEmailAndPhoneController.sendCodeRestorePasswordCorp)
+mainRoute.put("/code/phone/:userId",  ConfirmCodeEmailAndPhoneController.sendCodeForPhone)
+//RESTORE PASSWORD
+mainRoute.post("/code/restorePassword",  RestorePasswordController.sendRestorePassword)
+mainRoute.post("/code/restorePassword/corp",  RestorePasswordController.sendRestorePasswordCorp)
 //USERS CORP
 mainRoute.get("/user/corp/get_by_id/:userId", authMiddleware, UserCorpController.getUserCorp)
 mainRoute.put("/user/corp/:userId", authMiddleware, UserCorpController.updateUserCorp)
@@ -65,15 +81,22 @@ mainRoute.put('/category/:categoryLimitId', authMiddleware, CategoryController.u
 mainRoute.delete('/category/:categoryId', authMiddleware, CategoryController.deleteCategoryNumber);
 mainRoute.delete('/categories/:hotelId', authMiddleware, CategoryController.deleteAllCategoryNumber);
 //BOOKING
-mainRoute.get('/',  authCorpMiddleware,BookingController.getAllBooking);
-mainRoute.get('/status/:id',  authCorpMiddleware,BookingController.getBookingToId);
+mainRoute.get('/',  BookingController.getAllBooking);
+mainRoute.get('/archive/:email', authMiddleware, BookingController.getBookingArchiveToEmail);
+mainRoute.get('/active/:id',  authMiddleware, BookingController.getBookingActiveToId);
 mainRoute.get('/bookings/by_object/:hotelId', BookingController.getAllBookingByObject);
 mainRoute.get('/booking/:id', BookingController.getBooking);
 mainRoute.post('/booking', authMiddleware, BookingController.createBooking);
-mainRoute.post('/booking/corp', authMiddleware, BookingController.createBookingCorp);
-mainRoute.put('/booking/:id', authMiddleware, BookingController.updateBooking);
-mainRoute.post('/booking/delete/:id', authMiddleware, BookingController.deleteBooking);
-
+mainRoute.post('/booking/create/corp', authCorpMiddleware, BookingController.createBookingCorp);
+mainRoute.put('/booking/:id',  BookingController.updateBooking);
+mainRoute.post('/booking/delete/:id',  BookingController.deleteBooking);
+//CHAT SUPPORT
+mainRoute.get('/chat/msg/:userId', authMiddleware,ChatSupportController.getMsgUser);
+mainRoute.get('/chat', authMiddleware,ChatSupportController.getAllUsers);
+mainRoute.put('/chat/:userId', authMiddleware, ChatSupportController.saveMessage);
+mainRoute.put('/chat/viewMsg/:userId', authMiddleware, ChatSupportController.viewMessage);
+mainRoute.post('/chat/add', authMiddleware, ChatSupportController.newDialogue);
+mainRoute.post('/chat/delete/:userId', authMiddleware, ChatSupportController.deleteDialogue);
 //FAVORITE
 mainRoute.get('/get/corp/:userId', authCorpMiddleware, FavoritesController.getAllFavorites);
 mainRoute.get('/get/:userId', authMiddleware, FavoritesController.getAllFavorites);
@@ -84,7 +107,9 @@ mainRoute.delete('/delete/:hotelId', authMiddleware, FavoritesController.deleteF
 //RATING
 mainRoute.get('/rating/:hotelId', RatingController.getAllRatingObject);
 mainRoute.get('/rating/city/:city', RatingController.getAllCityRatingObject);
+mainRoute.post('/rating/corp', authMiddleware, RatingController.createRatingObject);
 mainRoute.post('/rating', authMiddleware, RatingController.createRatingObject);
+mainRoute.post('/rating/check/:userId', authMiddleware, RatingController.checkRatingObject);
 //SETTING PAGE
 mainRoute.get('/setting_page/all', SettingPageController.getSettingPage);
 export default mainRoute;

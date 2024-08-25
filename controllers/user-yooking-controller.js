@@ -31,7 +31,7 @@ class UserYookingController {
         try {
             const userId = req.params.userId
             const {dataUserYooking} = req.body
-            console.log("dataUserYooking",dataUserYooking);
+            console.log("dataUserYooking",dataUserYooking + " " + userId);
             if (!userId && !dataUserYooking) {
                 return new ApiError.BadRequest("Некорректные данные")
             }

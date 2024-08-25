@@ -15,6 +15,19 @@ class RatingController {
             next(error);
         }
     }
+    async checkRatingObject(req, res, next) {
+        const userId = req.params.userId;
+        const {hotelId} = req.body;
+        try {
+            if (!userId && !hotelId) {
+                return new ApiError.BadRequest("Некорректные данные")
+            }
+            const data = await RatingService.checkRatingObject(userId, hotelId)
+            return res.json(data)
+        } catch (error) {
+            next(error);
+        }
+    }
     async getAllCityRatingObject(req, res, next) {
         const city = req.params.city;
         try {
@@ -30,6 +43,7 @@ class RatingController {
     async createRatingObject(req, res, next) {
         try {
             const {rating} = req.body;
+            console.log("rating",rating);
             if (!rating) {
                 return new ApiError.BadRequest("Некорректные данные")
             }

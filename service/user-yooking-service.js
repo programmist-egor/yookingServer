@@ -14,7 +14,8 @@ class UserYookingService {
     async updateUserYooking(userId, dataUserYooking) {
         console.log("userId",userId);
         console.log("dataUserYooking",dataUserYooking);
-        return await UsersYooking.update(dataUserYooking, { where: { id: userId } });
+        const result = await UsersYooking.update(dataUserYooking, { where: { id: userId } });
+        return result
 
     }
     async generateCode(userId) {

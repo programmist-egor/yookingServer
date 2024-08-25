@@ -3,6 +3,7 @@ import ApiError from "../exceptions/api-error.js";
 import NumberExtranet from "../models/numbers-model.js";
 import UsersYooking from "../models/users-yooking-model.js";
 import UsersCorp from "../models/users-corp-model.js";
+import {parseJSONData, parseJSONProperties} from "../utils/json-parse-object.js";
 
 
 class BookingService {
@@ -14,15 +15,54 @@ class BookingService {
         }
         return data;
     }
-    async getBookingToId(id) {
-        const data = await BookingExtranet.findAll({where: {email: id}})
-        console.log("statusId",id);
-        console.log("ALL DATA BOOKING",data);
+
+    async getBookingActiveToId(id) {
+        const users = await UsersYooking.findOne({where: {id: id}});
+        const userParse = parseJSONProperties(users.dataValues)
+        const bookingList = parseJSONData(users.dataValues.bookingList);
+
+        if (bookingList.length === 0) {
+            return {success: false, message: "No book"};
+        }
+
+        let bookingArray = []
+        bookingList.map(book => bookingArray.push(book.id))
+        const data = await BookingExtranet.findAll({where: {id: bookingArray}})
+        const dataParse = data.map(item => parseJSONProperties(item.dataValues))
+
+
+        const filteredBookings = dataParse.filter(booking => {
+            const parsedStatus = booking.status;
+            return parsedStatus && parsedStatus.name !== "Завершено";
+        });
+
+        return {success: true, data: {user: userParse, booking: filteredBookings}};
+    }
+
+    async getBookingArchiveToEmail(email) {
+        console.log("email",email);
+        const filterDataByStatus = (data) => {
+            return data.filter(item => {
+                const parsedStatus = parseJSONData(item.status);
+                if (parsedStatus && parsedStatus.name === "Завершено") {
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        };
+
+        const data = await BookingExtranet.findAll({ where: { email: email } });
+
+
         if (!data || data.length === 0) {
             throw new ApiError.BadRequest("Нет такой брони");
         }
-        return data;
+
+        return filterDataByStatus(data);
     }
+
+
     async getAllBookingByObject(hotelId) {
         const data = await BookingExtranet.findAll({where: {hotelId: hotelId}})
         if (!data) {
@@ -77,7 +117,7 @@ class BookingService {
             await BookingExtranet.destroy({ where: { id: id } });
             await NumberExtranet.update(dataNumber, { where: { id: numberId } });
             await UsersYooking.update(userUpdate, { where: { id: userId } });
-
+            await UsersCorp.update(userUpdate, { where: { id: userId } });
             // Возвращаем успешный результат
             return { success: true, message: "Booking deleted successfully." };
         } catch (error) {

@@ -24,9 +24,17 @@ const UsersCorp = sequelizeExtranet.define('Users-Corp', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    city: {
+    jobTitle: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
+    },
+    nameCompany: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    cityCompany: {
+        type: DataTypes.STRING,
+        allowNull: false,
     },
     phone: {
         type: DataTypes.STRING,
@@ -82,6 +90,14 @@ const UsersCorp = sequelizeExtranet.define('Users-Corp', {
         allowNull: false,
     },
     bookingList: {
+        type: DataTypes.JSON,
+        allowNull: true,
+    },
+    companyDetails: {
+        type: DataTypes.JSON,
+        allowNull: true,
+    },
+    accountDetails: {
         type: DataTypes.JSON,
         allowNull: true,
     },

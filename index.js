@@ -18,7 +18,7 @@ dotenv.config();
 
 const corsOptions = {
     credentials: true,
-    origin: [process.env.REACT_APP_API_BASE_URL_YOOKING, ],
+    origin: [process.env.REACT_APP_API_BASE_URL_YOOKING ],
 };
 
 const app = express();
